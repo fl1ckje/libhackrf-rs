@@ -1,0 +1,29 @@
+[package]
+name = "libhackrf-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vladislav Karelin <fl1ckje@mail.ru>"]
+license = "MIT"
+readme = "README.md"
+keywords = ["hackrf", "sdr"]
+categories = ["hardware-support"]
+
+[dependencies]
+rand = "0.8.5"
+rusb = "0.9.3"
+
+[lib]
+name = "libhackrf"
+version = "0.1.0"
+
+[[bin]]
+name = "info"
+path = "src/examples/info.rs"
+
+[[bin]]
+name = "rx"
+path = "src/examples/rx.rs"
+
+[[bin]]
+name = "tx"
+path = "src/examples/tx.rs"
