@@ -3,7 +3,7 @@
 # libhackrf-rs
 Rust API for the HackRF One software defined radio
 
-This is a reimplementation of [libhackrf] `libhackrf` in Rust using the [rusb] `libusb` wrapper.
+This is a reimplementation of [libhackrf] in Rust using the [rusb] `libusb` wrapper.
 It lacks some features, however it can still provide firmware and board info, receive and transmit data.
 For full feature support use the official C library.
 
