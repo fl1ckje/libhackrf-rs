@@ -1,7 +1,9 @@
 ![Maintenance](https://img.shields.io/badge/maintenance-stable-green)
 
 # libhackrf-rs
-Rust API for the HackRF One software defined radio (SDR). It's a reimplementation of [libhackrf] in Rust using a safe [rusb] wrapper.
+Rust API for the HackRF One software defined radio (SDR).
+
+It's a reimplementation of [libhackrf] in Rust using a safe [rusb] wrapper.
 
 At the current time, this library can:
 * provide firmware and board info;
