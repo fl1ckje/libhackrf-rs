@@ -32,7 +32,7 @@ Running info binary example (after project build):
 cargo run --package libhackrf-rs --bin info # you can also change it to rx or tx
 ```
 
-If you don't need to build binary examples, you may comment out this stuff in `Cargo.toml`
+If you don't need to build binary examples, you may use this [no-example-branch] or just comment out this stuff in `Cargo.toml`
 ```toml
 [[bin]]
 name = "info"
@@ -50,3 +50,4 @@ path = "src/examples/tx.rs"
 [rusb]: https://github.com/a1ien/rusb
 [HackRF One]: https://greatscottgadgets.com/hackrf/one/
 [libhackrf]: https://github.com/greatscottgadgets/hackrf/tree/master/host
+[no-example-branch]: https://github.com/fl1ckje/libhackrf-rs/tree/no-examples
