@@ -35,7 +35,11 @@ To use lib as dependency in you rust project, just add this line to your `Cargo.
 ```toml
 libhackrf-rs = { git = "https://github.com/fl1ckje/libhackrf-rs", branch = "master" }
 ```
-If you don't need to build binary examples, you may use this [no-example-branch] or just comment out this stuff in `Cargo.toml`
+If you don't need to build binary examples, you may use this [no-examples-branch]:
+```toml
+libhackrf-rs = { git = "https://github.com/fl1ckje/libhackrf-rs", branch = "no-examples" }
+```
+or just comment out this stuff in `Cargo.toml`
 ```toml
 [[bin]]
 name = "info"
@@ -53,4 +57,4 @@ path = "src/examples/tx.rs"
 [rusb]: https://github.com/a1ien/rusb
 [HackRF One]: https://greatscottgadgets.com/hackrf/one/
 [libhackrf]: https://github.com/greatscottgadgets/hackrf/tree/master/host
-[no-example-branch]: https://github.com/fl1ckje/libhackrf-rs/tree/no-examples
+[no-examples-branch]: https://github.com/fl1ckje/libhackrf-rs/tree/no-examples
