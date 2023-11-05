@@ -29,7 +29,8 @@ Running info binary example (after project build):
 ```sh
 cargo run --package libhackrf-rs --bin info # you can also change it to rx or tx
 ```
-To use lib as dependency in you rust project, just add this line to your `Cargo.toml`:
+## Use library as dependency
+Add this line to your `Cargo.toml`:
 ```toml
 libhackrf-rs = { git = "https://github.com/fl1ckje/libhackrf-rs", branch = "master" }
 ```
