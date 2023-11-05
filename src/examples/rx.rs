@@ -2,6 +2,7 @@ use libhackrf::{HackRF, Off, Rx};
 use std::{
     sync::mpsc::{channel, TryRecvError},
     thread,
+    time::Duration,
 };
 
 struct Args {
@@ -59,12 +60,14 @@ fn receive(args: Args) {
 
     let mut hackrf: HackRF<Rx> = hackrf.into_rx_mode().expect("Failed to enter RX mode");
 
-    let (samples_sender, samples_receiver) = channel();
-    let (exit_sender, exit_receiver) = channel();
+    const RECORD_BUFFER_SIZE: usize = 1024 * 1024;
+    let mut record_buffer: Vec<[u8; 2]> = Vec::with_capacity(RECORD_BUFFER_SIZE);
 
-    let sample_thread = thread::Builder::new()
-        .name("sample_thread".to_string())
-        .spawn(move || -> Result<(), libhackrf::Error> {
+    let (samples_sender, samples_receiver) = channel();
+    let (exit_tx, exit_rx) = channel();
+
+    let sample_thread: thread::JoinHandle<Result<(), libhackrf::Error>> =
+        thread::spawn(move || -> Result<(), libhackrf::Error> {
             println!("Sample thread has been spawned");
 
             loop {
@@ -73,7 +76,7 @@ fn receive(args: Args) {
                     .send(samples)
                     .expect("Failed to send buffer data from sample thread");
 
-                match exit_receiver.try_recv() {
+                match exit_rx.try_recv() {
                     Ok(_) => {
                         hackrf.stop_rx()?;
                         return Ok(());
@@ -85,11 +88,7 @@ fn receive(args: Args) {
                     Err(TryRecvError::Empty) => {}
                 }
             }
-        })
-        .expect("Failed to spawn sample thread");
-
-    const RECORD_BUFFER_SIZE: usize = 1024 * 1024;
-    let mut record_buffer: Vec<[u8; 2]> = Vec::with_capacity(RECORD_BUFFER_SIZE);
+        });
 
     loop {
         match samples_receiver.try_recv() {
@@ -102,21 +101,24 @@ fn receive(args: Args) {
             }
             Err(TryRecvError::Empty) => {}
         }
-        // signal processing with record buffer in the loop goes right here after
-        // match samples_receiver.try_recv() in realtime
+        // you can do samples processing here
+        // or wait for the buffer to fill and do processing after rx sample thread is closed:
+        // if record_buffer.len() >= RECORD_BUFFER_SIZE {
+        //     break;
+        // }
+    }
 
-        //also you can wait for the buffer to fill and do processing outside the loop
-        if record_buffer.len() >= RECORD_BUFFER_SIZE {
-            break;
-        }
+    for i in 1..=5 {
+        thread::sleep(Duration::from_secs(1));
+        println!("RX time: {} s.", i);
     }
 
     println!("Shutting down sample thread");
 
-    if let Err(e) = exit_sender.send(()) {
-        println!("Failed to send exit event (receiver disconnected): {}", e);
+    match exit_tx.send(()) {
+        Ok(()) => (),
+        Err(e) => println!("Failed to send exit event (exit_rx disconnected): {}", e),
     }
-
     sample_thread
         .join()
         .expect("Failed to join sample thread")

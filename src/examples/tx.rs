@@ -1,8 +1,9 @@
 use libhackrf::{HackRF, Off, Tx, MTU};
 use rand::{distributions::Uniform, Rng};
 use std::{
+    sync::mpsc::{channel, TryRecvError},
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 struct Args {
@@ -22,7 +23,7 @@ fn main() {
         filter_bw: 4_000_000,
         lna_gain: 40,
         txvga_gain: 47,
-        amp: false,
+        amp: true,
         bias_tee: 0,
     });
 }
@@ -60,28 +61,42 @@ fn transmit(args: Args) {
         .expect("Failed to set VGA gain");
 
     let mut hackrf: HackRF<Tx> = hackrf.into_tx_mode().expect("Failed to enter TX mode");
-    let ten_seconds: Duration = Duration::from_secs(10);
-    let now: Instant = Instant::now();
+    let (exit_tx, exit_rx) = channel();
 
-    let sample_thread = thread::Builder::new()
-        .name("sample".to_string())
-        .spawn(move || -> Result<(), libhackrf::Error> {
+    let sample_thread: thread::JoinHandle<Result<(), libhackrf::Error>> =
+        thread::spawn(move || -> Result<(), libhackrf::Error> {
+            let range: Uniform<u8> = Uniform::from(0..255);
+
             println!("Spawned sample thread");
 
-            let range: Uniform<u8> = Uniform::from(0..=255);
-            let samples: Vec<u8> = rand::thread_rng().sample_iter(&range).take(MTU).collect();
-
             loop {
-                hackrf.tx(samples.clone())?;
+                hackrf.tx(rand::thread_rng().sample_iter(&range).take(MTU).collect())?;
 
-                thread::sleep(ten_seconds);
-                if now.elapsed() >= ten_seconds {
-                    hackrf.stop_tx()?;
-                    break Ok(());
+                match exit_rx.try_recv() {
+                    Ok(_) => {
+                        hackrf.stop_tx()?;
+                        return Ok(());
+                    }
+                    Err(TryRecvError::Disconnected) => {
+                        println!("Main thread disconnected");
+                        return Ok(());
+                    }
+                    Err(TryRecvError::Empty) => {}
                 }
             }
-        })
-        .expect("Failed to spawn sample thread");
+        });
+
+    for i in 1..=5 {
+        thread::sleep(Duration::from_secs(1));
+        println!("TX time: {} s.", i);
+    }
+
+    println!("Shutting down sample thread");
+
+    match exit_tx.send(()) {
+        Ok(()) => (),
+        Err(e) => println!("Failed to send exit event (exit_rx disconnected): {}", e),
+    }
 
     sample_thread
         .join()
