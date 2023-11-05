@@ -1,4 +1,4 @@
-![Maintenance](https://img.shields.io/badge/maintenance-stable-green)
+![Maintenance](https://img.shields.io/badge/maintenance-stable-green) ![License](https://img.shields.io/badge/license-MIT-green)
 
 # libhackrf-rs
 Rust API for the HackRF One software defined radio (SDR).
