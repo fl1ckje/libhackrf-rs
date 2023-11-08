@@ -1,6 +1,10 @@
-# libhackrf-rs <img src="https://img.shields.io/badge/maintenance-stable-green" alt="Maintenance"> <img src="https://img.shields.io/badge/license-MIT-blue" alt="License"> <a href="https://discordapp.com/users/346979343995633664/"><img src="https://img.shields.io/badge/chat-on_discord-%237289DA" alt="Discord"></a>
-Rust API for the HackRF One software defined radio (SDR).
+# libhackrf-rs
+![Maintenance](https://img.shields.io/badge/maintenance-stable-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Discord](https://img.shields.io/badge/chat-on_discord-%237289DA.svg)
+![build workflow](https://github.com/fl1ckje/libhackrf-rs/actions/workflows/build.yml/badge.svg?branch=master)
 
+Rust API for the [HackRF One] software defined radio (SDR).
 It's a reimplementation of [libhackrf] in Rust using a safe [rusb] wrapper.
 
 At the current time, this library can:
