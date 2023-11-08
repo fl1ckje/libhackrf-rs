@@ -90,11 +90,21 @@ fn receive(args: Args) {
             }
         });
 
+    // for i in 1..=5 {
+    let mut i: i32 = 0;
     loop {
         match samples_receiver.try_recv() {
-            Ok(buffer) => buffer.chunks_exact(2).for_each(|iq: &[u8]| {
-                record_buffer.push([iq[0], iq[1]]);
-            }),
+            Ok(buffer) => {
+                buffer.chunks_exact(2).for_each(|iq: &[u8]| {
+                    record_buffer.push([iq[0], iq[1]]);
+                });
+                thread::sleep(Duration::from_secs(1));
+                i += 1;
+                println!("RX time: {} s.", i);
+                if i == 5 {
+                    break;
+                }
+            }
             Err(TryRecvError::Disconnected) => {
                 println!("Sample thread disconnected");
                 break;
@@ -102,15 +112,10 @@ fn receive(args: Args) {
             Err(TryRecvError::Empty) => {}
         }
         // you can do samples processing here
-        // or wait for the buffer to fill and do processing after rx sample thread is closed:
+        // or wait for the buffer to fill and do processing outside loop after rx sample thread is closed:
         // if record_buffer.len() >= RECORD_BUFFER_SIZE {
         //     break;
         // }
-    }
-
-    for i in 1..=5 {
-        thread::sleep(Duration::from_secs(1));
-        println!("RX time: {} s.", i);
     }
 
     println!("Shutting down sample thread");
