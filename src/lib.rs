@@ -8,7 +8,6 @@ use request::*;
 use transceiver_mode::*;
 
 pub const MAX_TRANSMISSION_UNIT: usize = constants::MAX_TRANSMISSION_UNIT;
-pub const TRANSFER_SIZE: usize = constants::TRANSFER_SIZE;
 
 use rusb::{
     request_type, DeviceDescriptor, DeviceHandle, Direction, GlobalContext, Recipient, RequestType,
@@ -16,26 +15,22 @@ use rusb::{
 };
 use std::time::Duration;
 
-#[derive(Debug)]
-pub struct Rx;
+pub enum Mode {
+    Off,
+    Tx,
+    Rx,
+}
 
-#[derive(Debug)]
-pub struct Tx;
-
-#[derive(Debug)]
-pub struct Off;
-
-pub struct HackRF<Mode> {
+pub struct HackRF {
     device_handle: DeviceHandle<GlobalContext>,
     description: DeviceDescriptor,
 
-    #[allow(dead_code)]
     mode: Mode,
     timeout: Duration,
 }
 
-impl HackRF<Off> {
-    pub fn new() -> Option<HackRF<Off>> {
+impl HackRF {
+    pub fn new() -> Option<HackRF> {
         let context: GlobalContext = GlobalContext {};
         let devices = match context.devices() {
             Ok(dev) => dev,
@@ -56,7 +51,7 @@ impl HackRF<Off> {
                         return Some(HackRF {
                             device_handle: handle,
                             description,
-                            mode: Off,
+                            mode: Mode::Off,
                             timeout: Duration::from_secs(1),
                         })
                     }
@@ -66,9 +61,7 @@ impl HackRF<Off> {
         }
         None
     }
-}
 
-impl<Mode> HackRF<Mode> {
     fn read_control<const N: usize>(
         &self,
         request: Request,
@@ -190,17 +183,17 @@ impl<Mode> HackRF<Mode> {
     pub fn set_sample_rate_auto(&mut self, freq: f64) -> Result<(), Error> {
         // let freq_frac = 1.0 + freq - freq.trunc();
 
-        let mut d = freq;
-        let u = unsafe { &mut *(&mut d as *mut f64 as *mut u64) };
-        let e = (*u >> 52) - 1023;
-        let mut m = (1u64 << 52) - 1;
+        let mut d: f64 = freq;
+        let u: &mut u64 = unsafe { &mut *(&mut d as *mut f64 as *mut u64) };
+        let e: u64 = (*u >> 52) - 1023;
+        let mut m: u64 = (1u64 << 52) - 1;
 
         // d = freq_frac;
         *u &= m;
         m &= !((1 << (e + 4)) - 1);
-        let mut a = 0;
+        let mut a: u64 = 0;
 
-        let mut i = 1;
+        let mut i: usize = 1;
         for _ in 1..MAX_N {
             a += *u;
             if ((a & m) == 0) || ((!a & m) == 0) {
@@ -290,49 +283,33 @@ impl<Mode> HackRF<Mode> {
         self.write_control(Request::SetHwSyncMode, value.into(), 0, &mut [])
     }
 
-    pub fn reset(mut self) -> Result<HackRF<Off>, Error> {
+    pub fn reset(mut self) -> Result<(), Error> {
         self.check_api_version(Version::from_bcd(0x0102))?;
         self.write_control(Request::Reset, 0, 0, &mut [])?;
-
-        Ok(HackRF {
-            device_handle: self.device_handle,
-            description: self.description,
-            mode: Off,
-            timeout: self.timeout,
-        })
+        self.mode = Mode::Off;
+        Ok(())
     }
 
     fn set_transceiver_mode(&mut self, mode: TransceiverMode) -> Result<(), Error> {
         self.write_control(Request::SetTransceiverMode, mode.into(), 0, &mut [])
     }
 
-    pub fn into_rx_mode(mut self) -> Result<HackRF<Rx>, Error> {
+    pub fn enter_rx_mode(&mut self) -> Result<(), Error> {
         self.set_transceiver_mode(TransceiverMode::Receive)?;
         self.device_handle.claim_interface(0)?;
-
-        Ok(HackRF {
-            device_handle: self.device_handle,
-            description: self.description,
-            mode: Rx,
-            timeout: self.timeout,
-        })
+        self.mode = Mode::Rx;
+        Ok(())
     }
 
-    pub fn into_tx_mode(mut self) -> Result<HackRF<Tx>, Error> {
+    pub fn enter_tx_mode(&mut self) -> Result<(), Error> {
         self.set_transceiver_mode(TransceiverMode::Transmit)?;
         self.device_handle.claim_interface(0)?;
-        Ok(HackRF {
-            device_handle: self.device_handle,
-            description: self.description,
-            mode: Tx,
-            timeout: self.timeout,
-        })
+        self.mode = Mode::Tx;
+        Ok(())
     }
-}
 
-impl HackRF<Rx> {
     pub fn rx(&mut self) -> Result<Vec<u8>, Error> {
-        let mut buffer: Vec<u8> = vec![0; TRANSFER_SIZE];
+        let mut buffer: Vec<u8> = vec![0; MAX_TRANSMISSION_UNIT];
         let n: usize =
             self.device_handle
                 .read_bulk(RX_ENDPOINT_ADDRESS, &mut buffer, self.timeout)?;
@@ -341,38 +318,27 @@ impl HackRF<Rx> {
         Ok(buffer)
     }
 
-    pub fn stop_rx(mut self) -> Result<HackRF<Off>, Error> {
-        self.device_handle.release_interface(0)?;
-        self.set_transceiver_mode(TransceiverMode::Off)?;
-
-        Ok(HackRF {
-            device_handle: self.device_handle,
-            description: self.description,
-            mode: Off,
-            timeout: self.timeout,
-        })
-    }
-}
-
-impl HackRF<Tx> {
     pub fn tx(&mut self, mut buffer: Vec<u8>) -> Result<(), Error> {
-        buffer.truncate(TRANSFER_SIZE);
+        buffer.truncate(MAX_TRANSMISSION_UNIT);
         self.device_handle
             .write_bulk(TX_ENDPOINT_ADDRESS, &mut buffer, self.timeout)?;
 
         Ok(())
     }
 
-    pub fn stop_tx(mut self) -> Result<HackRF<Off>, Error> {
+    fn stop_transceiver(mut self) -> Result<(), Error> {
         self.device_handle.release_interface(0)?;
         self.set_transceiver_mode(TransceiverMode::Off)?;
+        self.mode = Mode::Off;
+        Ok(())
+    }
 
-        Ok(HackRF {
-            device_handle: self.device_handle,
-            description: self.description,
-            mode: Off,
-            timeout: self.timeout,
-        })
+    pub fn stop_rx(self) -> Result<(), Error> {
+        self.stop_transceiver()
+    }
+
+    pub fn stop_tx(self) -> Result<(), Error> {
+        self.stop_transceiver()
     }
 }
 

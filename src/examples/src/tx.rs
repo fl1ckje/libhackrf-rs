@@ -1,4 +1,4 @@
-use libhackrf::{HackRF, Off, Tx, MAX_TRANSMISSION_UNIT};
+use libhackrf::{HackRF, MAX_TRANSMISSION_UNIT};
 use rand::{distributions::Uniform, Rng};
 use std::{
     sync::mpsc::{channel, TryRecvError},
@@ -29,7 +29,7 @@ fn main() {
 }
 
 fn transmit(args: Args) {
-    let mut hackrf: HackRF<Off> = HackRF::new().expect("Failed to open HackRF One");
+    let mut hackrf: HackRF = HackRF::new().expect("Failed to open HackRF One");
     const DIV: u32 = 1;
 
     hackrf
@@ -60,7 +60,7 @@ fn transmit(args: Args) {
         .set_txvga_gain(args.txvga_gain)
         .expect("Failed to set VGA gain");
 
-    let mut hackrf: HackRF<Tx> = hackrf.into_tx_mode().expect("Failed to enter TX mode");
+    hackrf.enter_tx_mode().expect("Failed to enter TX mode");
     let (exit_tx, exit_rx) = channel();
 
     let sample_thread: thread::JoinHandle<Result<(), libhackrf::Error>> =

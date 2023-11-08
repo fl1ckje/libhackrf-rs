@@ -1,8 +1,8 @@
-use libhackrf::{HackRF, Off};
+use libhackrf::HackRF;
 
 fn main() {
-    let hackrf: HackRF<Off> = HackRF::new().expect("Failed to open HackRF One");
-    println!("Board id: {:?}", hackrf.board_id().unwrap());
-    println!("Firmware version: {:?}", hackrf.version().unwrap());
-    println!("API version: {:?}", hackrf.device_version().to_string());
+    let sdr: HackRF = HackRF::new().expect("Failed to open HackRF One");
+    println!("Board id: {:?}", sdr.board_id().unwrap());
+    println!("Firmware version: {:?}", sdr.version().unwrap());
+    println!("API version: {:?}", sdr.device_version().to_string());
 }
