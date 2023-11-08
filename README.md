@@ -25,35 +25,12 @@ Building project:
 ```sh
 cargo build # or with --release argument
 ```
-Running info binary example (after project build):
-```sh
-cargo run --package libhackrf-rs --bin info # you can also change it to rx or tx
-```
 ## Use library as dependency
 Add this line to your `Cargo.toml`:
 ```toml
 libhackrf-rs = { git = "https://github.com/fl1ckje/libhackrf-rs", branch = "master" }
 ```
-If you don't need to build binary examples, you may use this [no-examples-branch]:
-```toml
-libhackrf-rs = { git = "https://github.com/fl1ckje/libhackrf-rs", branch = "no-examples" }
-```
-or just comment out this stuff in `Cargo.toml`
-```toml
-[[bin]]
-name = "info"
-path = "src/examples/info.rs"
-
-[[bin]]
-name = "rx"
-path = "src/examples/rx.rs"
-
-[[bin]]
-name = "tx"
-path = "src/examples/tx.rs"
-```
 
 [rusb]: https://github.com/a1ien/rusb
 [HackRF One]: https://greatscottgadgets.com/hackrf/one/
 [libhackrf]: https://github.com/greatscottgadgets/hackrf/tree/master/host
-[no-examples-branch]: https://github.com/fl1ckje/libhackrf-rs/tree/no-examples
