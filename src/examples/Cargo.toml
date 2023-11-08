@@ -1,0 +1,22 @@
+[package]
+name = "examples"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
+libhackrf-rs = { path = "../../"}
+
+[[bin]]
+name = "info"
+path = "src/info.rs"
+
+[[bin]]
+name = "rx"
+path = "src/rx.rs"
+
+[[bin]]
+name = "tx"
+path = "src/tx.rs"
