@@ -1,4 +1,4 @@
-use libhackrf::{HackRF, Off, Tx, MTU};
+use libhackrf::{HackRF, Off, Tx, MAX_TRANSMISSION_UNIT};
 use rand::{distributions::Uniform, Rng};
 use std::{
     sync::mpsc::{channel, TryRecvError},
@@ -70,7 +70,10 @@ fn transmit(args: Args) {
             println!("Spawned sample thread");
 
             loop {
-                hackrf.tx(rand::thread_rng().sample_iter(&range).take(MTU).collect())?;
+                hackrf.tx(rand::thread_rng()
+                    .sample_iter(&range)
+                    .take(MAX_TRANSMISSION_UNIT)
+                    .collect())?;
 
                 match exit_rx.try_recv() {
                     Ok(_) => {

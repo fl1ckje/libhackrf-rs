@@ -6,3 +6,5 @@ pub const RX_ENDPOINT_ADDRESS: u8 = LIBUSB_ENDPOINT_IN | 1;
 pub const TX_ENDPOINT_ADDRESS: u8 = LIBUSB_ENDPOINT_OUT | 2;
 pub const MAX_TRANSMISSION_UNIT: usize = 128 * 1024;
 pub const MHZ: u64 = 1_000_000;
+pub const TRANSFER_SIZE: usize = 262_144;
+pub const MAX_N: usize = 32;
