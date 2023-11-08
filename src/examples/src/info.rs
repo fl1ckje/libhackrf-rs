@@ -1,6 +1,5 @@
 use libhackrf::{HackRF, Off};
 
-
 fn main() {
     let hackrf: HackRF<Off> = HackRF::new().expect("Failed to open HackRF One");
     println!("Board id: {:?}", hackrf.board_id().unwrap());
