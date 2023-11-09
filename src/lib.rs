@@ -30,6 +30,10 @@ pub struct HackRF {
 }
 
 impl HackRF {
+    //TODO:
+    //refactor to "pub fn new (serial_num: String) -> Option<HackRF> {...}"
+    //implement method "pub fn list_devices() -> vec<String>{...}"
+
     pub fn new() -> Option<HackRF> {
         let context: GlobalContext = GlobalContext {};
         let devices = match context.devices() {
@@ -147,6 +151,31 @@ impl HackRF {
     pub fn board_id(&self) -> Result<u8, Error> {
         let data: [u8; 1] = self.read_control(Request::BoardIdRead, 0, 0)?;
         Ok(data[0])
+    }
+
+    pub fn part_id_serial_read(self) -> Result<((u32, u32), String), Error> {
+        let mut buffer: [u8; 32] = [0; 32];
+        self.device_handle.read_control(
+            request_type(Direction::In, RequestType::Vendor, Recipient::Device),
+            Request::BoardPartidSerialnoRead.into(),
+            0,
+            0,
+            &mut buffer,
+            self.timeout,
+        )?;
+        let part_id_1: u32 = u32::from_le_bytes(buffer[0..4].try_into().unwrap());
+        let part_id_2: u32 = u32::from_le_bytes(buffer[4..8].try_into().unwrap());
+
+        let mut serial_number: String = "".to_owned();
+
+        for i in 0..4 {
+            serial_number += &format!(
+                "{:08x?}",
+                u32::from_le_bytes(buffer[8 + 4 * i..12 + 4 * i].try_into().unwrap())
+            );
+        }
+
+        Ok(((part_id_1, part_id_2), serial_number))
     }
 
     pub fn version(&self) -> Result<String, Error> {
