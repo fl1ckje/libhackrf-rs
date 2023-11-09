@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-libhackrf-rs = { path = "../../"}
+libhackrf-rs = { path = "../../" }
 
 [[bin]]
 name = "info"
@@ -16,6 +16,10 @@ path = "src/info.rs"
 [[bin]]
 name = "rx"
 path = "src/rx.rs"
+
+[[bin]]
+name = "rx_std_output.rs"
+path = "src/rx_std_output.rs"
 
 [[bin]]
 name = "tx"
