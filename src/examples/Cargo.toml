@@ -3,11 +3,10 @@ name = "examples"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 rand = "0.8.5"
 libhackrf-rs = { path = "../../" }
+ctrlc = "3.4.1"
 
 [[bin]]
 name = "info"
@@ -18,8 +17,8 @@ name = "rx"
 path = "src/rx.rs"
 
 [[bin]]
-name = "rx_std_output.rs"
-path = "src/rx_std_output.rs"
+name = "rx_to_file"
+path = "src/rx_to_file.rs"
 
 [[bin]]
 name = "tx"

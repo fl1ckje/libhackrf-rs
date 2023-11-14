@@ -15,12 +15,14 @@ use rusb::{
 };
 use std::time::Duration;
 
+#[derive(Debug)]
 pub enum Mode {
     Off,
     Tx,
     Rx,
 }
 
+#[derive(Debug)]
 pub struct HackRF {
     device_handle: DeviceHandle<GlobalContext>,
     description: DeviceDescriptor,
@@ -209,10 +211,10 @@ impl HackRF {
         )
     }
 
-    pub fn set_sample_rate_auto(&mut self, freq: f64) -> Result<(), Error> {
+    pub fn set_sample_rate_auto(&mut self, freq: u32) -> Result<(), Error> {
         // let freq_frac = 1.0 + freq - freq.trunc();
 
-        let mut d: f64 = freq;
+        let mut d: f64 = freq as f64;
         let u: &mut u64 = unsafe { &mut *(&mut d as *mut f64 as *mut u64) };
         let e: u64 = (*u >> 52) - 1023;
         let mut m: u64 = (1u64 << 52) - 1;
@@ -235,7 +237,7 @@ impl HackRF {
             i = 1;
         }
 
-        let freq_hz = (freq * i as f64 + 0.5).trunc() as u32;
+        let freq_hz = (freq as f64 * i as f64 + 0.5).trunc() as u32;
         let divider = i as u32;
 
         self.set_sample_rate(freq_hz, divider)
@@ -355,19 +357,18 @@ impl HackRF {
         Ok(())
     }
 
-    fn stop_transceiver(mut self) -> Result<(), Error> {
+    pub fn stop_rx(&mut self) -> Result<(), Error> {
         self.device_handle.release_interface(0)?;
         self.set_transceiver_mode(TransceiverMode::Off)?;
         self.mode = Mode::Off;
         Ok(())
     }
 
-    pub fn stop_rx(self) -> Result<(), Error> {
-        self.stop_transceiver()
-    }
-
-    pub fn stop_tx(self) -> Result<(), Error> {
-        self.stop_transceiver()
+    pub fn stop_tx(&mut self) -> Result<(), Error> {
+        self.device_handle.release_interface(0)?;
+        self.set_transceiver_mode(TransceiverMode::Off)?;
+        self.mode = Mode::Off;
+        Ok(())
     }
 }
 

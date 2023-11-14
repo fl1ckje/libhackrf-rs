@@ -26,11 +26,11 @@ fn main() {
         bias_tee: 0,
     });
 }
+
 fn receive(args: Args) {
     let mut sdr: HackRF = HackRF::new().expect("Failed to open HackRF One");
-    const DIV: u32 = 1;
 
-    sdr.set_sample_rate(args.fs, DIV)
+    sdr.set_sample_rate_auto(args.fs)
         .expect("Failed to set sample rate");
 
     sdr.set_freq(args.fc)
@@ -83,15 +83,14 @@ fn receive(args: Args) {
             }
         });
 
-    // for i in 1..=5 {
     let mut i: i32 = 0;
     loop {
         match samples_receiver.try_recv() {
             Ok(buffer) => {
                 buffer.chunks_exact(2).for_each(|iq: &[u8]| {
                     record_buffer.push([iq[0], iq[1]]);
-                    println!("{:?}", [iq[0], iq[1]])
                 });
+                println!("{}", buffer.len());
                 thread::sleep(Duration::from_secs(1));
                 i += 1;
                 println!("RX time: {} s.", i);
