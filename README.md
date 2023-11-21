@@ -23,7 +23,8 @@ Library runs on both Linux and Windows:
   - 7 :white_check_mark:
   - 8 :white_check_mark:
   - 8.1 :white_check_mark:
-  - 11 22H2 :white_check_mark:
+  - 10 :white_check_mark:
+  - 11 :white_check_mark:
 
 If you have got a desktop pc/laptop with Mac OS, I would appreciate your feedback about compatibility.
 
