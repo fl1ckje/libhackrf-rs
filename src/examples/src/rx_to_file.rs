@@ -1,3 +1,4 @@
+pub mod args;
 use libhackrf::HackRF;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -11,31 +12,14 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-struct Args {
-    fs: u32,
-    fc: u64,
-    filter_bw: u32,
-    lna_gain: u16,
-    vga_gain: u16,
-    amp: bool,
-    bias_tee: u8,
-    file_name: String,
-}
-
+// usage example:
+// ./rx_to_file --fs=2000000 --fc=1000000 --fbw=1750000 --lna=0 --vga=0 --amp=1 --bias_tee=1 --file_name=samples.dat
 fn main() {
-    receive(Args {
-        fs: 10_000_000,
-        fc: 87_600_000,
-        filter_bw: 4_000_000,
-        lna_gain: 20,
-        vga_gain: 32,
-        amp: false,
-        bias_tee: 0,
-        file_name: "samples.dat".to_owned(),
-    });
+    let arguments: args::Args = args::parse();
+    receive(arguments);
 }
 
-fn receive(args: Args) {
+fn receive(args: args::Args) {
     let mut sdr: HackRF = HackRF::new().expect("Failed to open HackRF One");
 
     sdr.set_sample_rate_auto(args.fs)
@@ -44,7 +28,7 @@ fn receive(args: Args) {
     sdr.set_freq(args.fc)
         .expect("Failed to set carrier frequency");
 
-    sdr.set_baseband_filter_bandwidth(args.filter_bw)
+    sdr.set_baseband_filter_bandwidth(args.fbw)
         .expect("Failed to set baseband filter bandwidth");
 
     sdr.set_amp_enable(args.amp)
@@ -53,11 +37,9 @@ fn receive(args: Args) {
     sdr.set_antenna_enable(args.bias_tee)
         .expect("Failed to disable antenna power");
 
-    sdr.set_lna_gain(args.lna_gain)
-        .expect("Failed to set LNA gain");
+    sdr.set_lna_gain(args.lna).expect("Failed to set LNA gain");
 
-    sdr.set_vga_gain(args.vga_gain)
-        .expect("Failed to set VGA gain");
+    sdr.set_vga_gain(args.vga).expect("Failed to set VGA gain");
 
     sdr.enter_rx_mode().expect("Failed to enter RX mode");
 
