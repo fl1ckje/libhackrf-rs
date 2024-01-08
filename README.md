@@ -31,7 +31,7 @@ If you have got a desktop pc/laptop with Mac OS, I would appreciate your feedbac
 ## Build and run quick-guide
 Building project:
 ```sh
-cargo build # or with --release argument
+$ cargo build # or with --release argument
 ```
 ## Use library as dependency
 Add this line to your `Cargo.toml`:
